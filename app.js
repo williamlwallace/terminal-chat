@@ -6,7 +6,7 @@ const util = require('util');
 const blessed = require('neo-blessed');
 
 function fetchToken(username) {
-  return axios.post('http://localhost:5000/join', {
+  return axios.post('https://terminalchat.herokuapp.com/join', {
     username,
   });
 }
