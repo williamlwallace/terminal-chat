@@ -51,8 +51,8 @@ async function main() {
     );
     spinner.succeed(`Authenticated successfully as ${username}!`);
 
-    spinner.start('Connecting to the General channel...');
-    const channel = chatClient.channel('messaging', 'general');
+    spinner.start('Connecting to the undercover work chat...');
+    const channel = chatClient.channel('messaging', 'undercover-work-chat');
     await channel.watch();
     spinner.succeed('Connection successful!');
     process.stdin.removeAllListeners('data');
@@ -126,6 +126,22 @@ async function main() {
       const timeSent = dateFormat(event.message.created_at, "h:MM:ss TT");
       messageList.addItem(`${event.user.id} [${timeSent}]: ${event.message.text}`);
       messageList.scrollTo(100);
+      screen.render();
+    });
+
+    channel.on('user.watching.start', async event => {
+      const newUser = event.user.name;
+      messageList.addItem(`${newUser} has joined the chat`);
+      messageList.scrollTo(100);
+      screen.title = `terminal-chat: ${channel.state.watcher_count} online`;
+      screen.render();
+    });
+
+    channel.on('user.watching.stop', async event => {
+      const newUser = event.user.name;
+      messageList.addItem(`${newUser} has left the chat`);
+      messageList.scrollTo(100);
+      screen.title = `terminal-chat: ${channel.state.watcher_count} online`;
       screen.render();
     });
   } catch (err) {
