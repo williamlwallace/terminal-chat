@@ -4,6 +4,7 @@ const ora = require('ora');
 const { StreamChat } = require('stream-chat');
 const util = require('util');
 const blessed = require('neo-blessed');
+const dateFormat = require('dateformat');
 
 function fetchToken(username) {
   return axios.post('https://terminalchat.herokuapp.com/join', {
@@ -41,7 +42,7 @@ async function main() {
     const chatClient = new StreamChat(apiKey);
 
     spinner.start('Authenticating user...');
-    await chatClient.setUser(
+    await chatClient.connectUser(
       {
         id: username,
         name: username,
@@ -51,14 +52,14 @@ async function main() {
     spinner.succeed(`Authenticated successfully as ${username}!`);
 
     spinner.start('Connecting to the General channel...');
-    const channel = chatClient.channel('team', 'general');
+    const channel = chatClient.channel('messaging', 'general');
     await channel.watch();
     spinner.succeed('Connection successful!');
     process.stdin.removeAllListeners('data');
 
     const screen = blessed.screen({
       smartCSR: true,
-      title: 'Stream Chat Demo',
+      title: `terminal-chat: ${channel.state.watcher_count} online`,
     });
 
     var messageList = blessed.list({
@@ -122,7 +123,8 @@ async function main() {
     screen.render();
 
     channel.on('message.new', async event => {
-      messageList.addItem(`${event.user.id}: ${event.message.text}`);
+      const timeSent = dateFormat(event.message.created_at, "h:MM:ss TT");
+      messageList.addItem(`${event.user.id} [${timeSent}]: ${event.message.text}`);
       messageList.scrollTo(100);
       screen.render();
     });
